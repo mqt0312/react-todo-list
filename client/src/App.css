@@ -36,3 +36,9 @@
     transform: rotate(360deg);
   }
 }
+
+.textarea {
+  overflow: hidden; 
+  overflow-wrap: break-word; 
+  height: 522px;
+}
