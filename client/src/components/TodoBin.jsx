@@ -1,32 +1,13 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import { stringify, v4 as uuid } from 'uuid'
-import { ContextMenu, ContextMenuTrigger, MenuItem } from 'react-contextmenu'
+import { ContextMenu, ContextMenuTrigger, MenuItem  } from 'react-contextmenu'
 
 import './TodoBin.css'
 
 import store from '../redux/store'
-import { addTask, checkTask, deleteTask } from '../redux/slices/todos-slice'
+import { addTask, checkTask, deleteTask, saveTodos } from '../redux/slices/todos-slice'
 
-// const todos_sample = [
-//     {
-//         id: 123,
-//         title: "Hello 1",
-//         checked: false
-//     },
-//     {
-//         id: 456,
-//         title: "Hello 2",
-//         checked: true
-//     },
-//     {
-//         id: 789,
-//         title: "Hello 3",
-//         checked: false
-//     },
-// ]
-
-// todos_sample.map(task => store.dispatch(addTask(task)));
 
 const TodoBin = (props) => {
     // React.useEffect(() => {
@@ -53,7 +34,7 @@ const TodoBin = (props) => {
                 <div className="col-6 mt-2">
                     <ul className="list-group">
                         {props.todos.map(task => (
-                            <ContextMenuTrigger  id="todo-contextmenu">
+                            <ContextMenuTrigger id="todo-contextmenu" key={task.id}>
                                 <li data-taskid={task.id.toString()} className="list-group-item list-group-item-action d-flex justify-content-left">
                                     {/* {task.checked ? 
                                         <input class="form-check-input me-1" type="checkbox" checked onChange={() => checkHandler(task.id)}/> 
@@ -81,7 +62,13 @@ const TodoBin = (props) => {
                 </div>
 
             </div>
-
+            <div className="row justify-content-center">
+                <div className="col-6 mt-2 d-grid">
+                    <button className="btn btn-primary" onClick={() => store.dispatch(saveTodos(props.todos))}>
+                        Save
+                    </button>
+                </div>
+            </div>
 
         </div>
     )

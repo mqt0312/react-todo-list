@@ -14,7 +14,7 @@ const NavBar = () => {
                 </button>
                 <div className="collapse navbar-collapse" id="navbarNav">
                     <div className="navbar-nav">
-                        <button type="button" className="btn btn-primary" onClick={() => store.dispatch(clearTasks())}>+ Todo</button>
+                        <a href="/new" type="button" className="btn btn-primary" onClick={() => store.dispatch(clearTasks())}>+ Todo</a>
                     </div>
                    
                 </div>
