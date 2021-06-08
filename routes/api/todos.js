@@ -15,25 +15,32 @@ router.get("/", (req, res) => {
 });
 
 router.get("/:todosId", (req, res) => {
-    Todos.find(todos => todos.todosId === req.body.todosId)
-        .then(tasks => res.status(200).json(tasks));
+    Todos.findOne({todosId: req.params.todosId}, { _id: 0, __v: 0 })
+        .then(todos => {
+            console.log(todos);
+            res.status(200).json(todos);
+        });
 });
+
 
 router.post("/", (req, res) => {
     const sha256 = createHash('sha256');
-    const new_tasks = req.body;
-    new_tasks.forEach(task => {
+    const new_todos = req.body;
+    new_todos.todosId = sha256.update(uuid4()).update(salt(4)).digest('hex').slice(0,8);
+    new_todos.createdTime = Date();
+    new_todos.updatedTime = Date();
+    new_todos.tasks.forEach(task => {
         task.taskId = task.id;
         delete task.id;
     });
     
-    delete new_tasks.id;
-    const new_todos = {
-        todosId: sha256.update(uuid4()).update(salt(4)).digest('hex').slice(0,8),
-        createdOn: Date(),
-        tasks: new_tasks
-    };
-    
+    // delete new_tasks.id;
+    // const new_todos = {
+    //     todosId: sha256.update(uuid4()).update(salt(4)).digest('hex').slice(0,8),
+    //     createdOn: Date(),
+    //     tasks: new_tasks
+    // };
+    console.log(new_todos);
     // console.log(req);
     Todos.create(new_todos
         , (err, task) => {
@@ -48,22 +55,6 @@ router.post("/", (req, res) => {
     );
 });
 
-router.delete("/", (req, res) => {
-    // console.log("delete requested");
-    // res.status(200).json({success:true});
-    
-    Todos.deleteOne({ _id: req.query.id }
-        , err => {
-            if (err) {
-                console.error("ERROR: Task not deleted:", err);
-                res.status(400).json({ success: false, err: err });
-            }
-            else {
-                console.log("Task deleted");
-                res.status(200).json({ success: true })
-            }
-        }
-    );
-});
+
 
 module.exports = router;

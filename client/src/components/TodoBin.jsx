@@ -33,7 +33,7 @@ const TodoBin = (props) => {
             <div className="row justify-content-center">
                 <div className="col-6 mt-2">
                     <ul className="list-group">
-                        {props.todos.map(task => (
+                        {props.todos.tasks.map(task => (
                             <ContextMenuTrigger id="todo-contextmenu" key={task.id}>
                                 <li data-taskid={task.id.toString()} className="list-group-item list-group-item-action d-flex justify-content-left">
                                     {/* {task.checked ? 

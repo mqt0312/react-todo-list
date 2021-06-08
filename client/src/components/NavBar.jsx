@@ -6,7 +6,7 @@ const NavBar = () => {
     return (
         <div className="navbar navbar-expand-md navbar-light bg-light">
             <div className="container">
-                <a className="navbar-brand" href="#">
+                <a className="navbar-brand" href="/">
                     TodoBin
                 </a>
                 <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -14,7 +14,7 @@ const NavBar = () => {
                 </button>
                 <div className="collapse navbar-collapse" id="navbarNav">
                     <div className="navbar-nav">
-                        <a href="/new" type="button" className="btn btn-primary" onClick={() => store.dispatch(clearTasks())}>+ Todo</a>
+                        <a href="/todos" type="button" className="btn btn-primary" onClick={() => store.dispatch(clearTasks())}>+ Todo</a>
                     </div>
                    
                 </div>

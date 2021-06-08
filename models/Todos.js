@@ -2,7 +2,8 @@ const mongoose = require("mongoose");
 
 const TodosSchema = new mongoose.Schema({
     todosId: { type: String, required: true },
-    createdOn: { type: Date, required: true },
+    createdTime: { type: Date, required: true },
+    updatedTime: { type: Date, required: true },
     tasks: [
         {
             title: { type: String, required: true },
