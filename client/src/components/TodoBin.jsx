@@ -1,12 +1,12 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import { v4 as uuid } from 'uuid'
+import { stringify, v4 as uuid } from 'uuid'
 import { ContextMenu, ContextMenuTrigger, MenuItem } from 'react-contextmenu'
 
 import './TodoBin.css'
 
 import store from '../redux/store'
-import { addTask, checkTask } from '../redux/slices/todos-slice'
+import { addTask, checkTask, deleteTask } from '../redux/slices/todos-slice'
 
 // const todos_sample = [
 //     {
@@ -53,8 +53,8 @@ const TodoBin = (props) => {
                 <div className="col-6 mt-2">
                     <ul className="list-group">
                         {props.todos.map(task => (
-                            <ContextMenuTrigger id="same_unique_identifier">
-                                <li className="list-group-item list-group-item-action d-flex justify-content-left">
+                            <ContextMenuTrigger  id="todo-contextmenu">
+                                <li data-taskid={task.id.toString()} className="list-group-item list-group-item-action d-flex justify-content-left">
                                     {/* {task.checked ? 
                                         <input class="form-check-input me-1" type="checkbox" checked onChange={() => checkHandler(task.id)}/> 
                                         : <input class="form-check-input me-1" type="checkbox" onChange={() => checkHandler(task.id)}/> 
@@ -69,8 +69,8 @@ const TodoBin = (props) => {
                             </ContextMenuTrigger>
                             
                         ))}
-                        <ContextMenu id="same_unique_identifier">
-                            <MenuItem data={{type: "delete"}} >
+                        <ContextMenu id="todo-contextmenu">
+                            <MenuItem data={{type: "delete"}} onClick={(e, data, elem) => deleteHandler(elem.children[0].dataset.taskid)}>
                                 Delete
                             </MenuItem>
                             
@@ -105,13 +105,11 @@ function taskSubmitHandler(e) {
     if (!(input_elem.value === "")) {
         const input_text = input_elem.value;
         input_elem.value = "";
-        console.log("Submitted:", input_text);
         const new_task = {
             title: input_text,
             checked: false,
             id: uuid()
         }
-        console.log("Dispatching:", new_task);
         store.dispatch(addTask(new_task));
     }
 
@@ -119,6 +117,10 @@ function taskSubmitHandler(e) {
 
 const checkHandler = task_id => {
     store.dispatch(checkTask(task_id))
+}
+
+const deleteHandler = task_id => {
+    store.dispatch(deleteTask(task_id))
 }
 
 const mapStateToProps = state => {
