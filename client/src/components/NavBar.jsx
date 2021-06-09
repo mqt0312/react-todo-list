@@ -1,6 +1,7 @@
 import React from 'react'
 import store from '../redux/store'
 import { clearTasks } from '../redux/slices/todos-slice'
+import { Link } from 'react-router-dom'
 
 const NavBar = () => {
     return (
@@ -14,7 +15,10 @@ const NavBar = () => {
                 </button>
                 <div className="collapse navbar-collapse" id="navbarNav">
                     <div className="navbar-nav">
-                        <a href="/todos" type="button" className="btn btn-primary" onClick={() => store.dispatch(clearTasks())}>+ Todo</a>
+                        <Link to="/todos">
+                            <div  type="button" className="btn btn-primary" onClick={() => store.dispatch(clearTasks())}>+ Todo</div>
+                        </Link>
+                        
                     </div>
                    
                 </div>

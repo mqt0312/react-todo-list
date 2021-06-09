@@ -1,4 +1,9 @@
 import logo from './logo.svg';
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route
+} from "react-router-dom";
 import './App.css';
 import 'jquery/dist/jquery';
 import 'bootstrap/dist/css/bootstrap.css';
@@ -11,12 +16,20 @@ import TodoBin from './components/TodoBin';
 
 
 function App() {
-  
   return (
-    <div className="App">
+    <Router>
       <NavBar />
-      <TodoBin />
-    </div>
+      <Switch>
+        <Route path="/todos/:todosId">
+          <TodoBin />
+        </Route>
+        <Route path="/todos">
+          <TodoBin />
+        </Route>
+      </Switch>
+      
+    </Router>
+    
   );
 }
 

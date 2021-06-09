@@ -31,12 +31,13 @@ const saveTodos = createAsyncThunk(
 const loadTodos = createAsyncThunk(
   "todos/loadTodos",
   async (params, thunkAPI) => {
-
+    console.log("loadTodos received:", params);
     let response;
     await axios
-      .get("/todos")
-      .then(res => response = res.body)
+      .get(`/todos/${params}`)
+      .then(res => response = res.data)
       .catch(err => console.error(err));
+    console.log(response);
     return response;
   }
 )
@@ -50,26 +51,35 @@ const todosSlice = createSlice({
       state.tasks.push(new_task);
     },
     checkTask(state, action) {
-      const task = state.tasks.find(task => task.id === action.payload);
+      const task = state.tasks.find(task => task.taskId === action.payload);
       task.checked = !task.checked;
     },
     deleteTask(state, action) {
       return {
         ...state,
-        tasks: state.tasks.filter(task => task.id !== action.payload)
+        tasks: state.tasks.filter(task => task.taskId !== action.payload)
       }
     },
     clearTasks(state, action) {
       return initialState;
     },
   },
-  extraReducer: {
+  extraReducers: {
     [saveTodos.fulfilled]: (state, action) => {
+      state.status = "idle"
       console.log("saved todos.");
     },
+    [saveTodos.pending]: (state, action) => {
+      state.status = "busy";
+    },
     [loadTodos.fulfilled]: (state, action) => {
-      state.push(action.payload);
       console.log("loaded todos.");
+      return action.payload
+      
+    },
+    [loadTodos.pending]: (state, action) => {
+      console.log("loading todos.");
+      state.status = "busy";
     }
 
   }
@@ -78,5 +88,5 @@ const todosSlice = createSlice({
 
 
 export const { addTask, checkTask, deleteTask, clearTasks, saveTasks } = todosSlice.actions;
-export {saveTodos};
+export {saveTodos, loadTodos};
 export default todosSlice.reducer;

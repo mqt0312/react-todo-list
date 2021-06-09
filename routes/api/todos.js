@@ -29,10 +29,10 @@ router.post("/", (req, res) => {
     new_todos.todosId = sha256.update(uuid4()).update(salt(4)).digest('hex').slice(0,8);
     new_todos.createdTime = Date();
     new_todos.updatedTime = Date();
-    new_todos.tasks.forEach(task => {
-        task.taskId = task.id;
-        delete task.id;
-    });
+    // new_todos.tasks.forEach(task => {
+    //     task.taskId = task.id;
+    //     delete task.id;
+    // });
     
     // delete new_tasks.id;
     // const new_todos = {

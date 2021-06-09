@@ -1,12 +1,14 @@
-import React from 'react'
-import { connect } from 'react-redux'
-import { stringify, v4 as uuid } from 'uuid'
-import { ContextMenu, ContextMenuTrigger, MenuItem  } from 'react-contextmenu'
-
+import React from 'react';
+import { connect, useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
+import { stringify, v4 as uuid } from 'uuid';
+import { ContextMenu, ContextMenuTrigger, MenuItem  } from 'react-contextmenu';
+import { createSelector } from '@reduxjs/toolkit'
 import './TodoBin.css'
 
 import store from '../redux/store'
-import { addTask, checkTask, deleteTask, saveTodos } from '../redux/slices/todos-slice'
+import { addTask, checkTask, deleteTask, saveTodos, loadTodos, saveTasks } from '../redux/slices/todos-slice'
+
 
 
 const TodoBin = (props) => {
@@ -19,6 +21,14 @@ const TodoBin = (props) => {
     //         window.removeEventListener('resize', resizeHandler);
     //     }
     // }, [])
+    const { todosId } = useParams();
+    React.useEffect(() => {
+        if (todosId !== undefined) {
+            store.dispatch(loadTodos(todosId));
+        }
+    }, []);
+    const status = useSelector(state => state.todos.status);
+    
 
     return (
         <div className="container-fluid my-3">
@@ -30,17 +40,18 @@ const TodoBin = (props) => {
                     </form>
                 </div>
             </div>
+            <Spinner state={status === "busy"} />
             <div className="row justify-content-center">
                 <div className="col-6 mt-2">
                     <ul className="list-group">
                         {props.todos.tasks.map(task => (
-                            <ContextMenuTrigger id="todo-contextmenu" key={task.id}>
-                                <li data-taskid={task.id.toString()} className="list-group-item list-group-item-action d-flex justify-content-left">
+                            <ContextMenuTrigger id="todo-contextmenu" key={task.taskId}>
+                                <li data-taskid={task.taskId.toString()} className="list-group-item list-group-item-action d-flex justify-content-left">
                                     {/* {task.checked ? 
                                         <input class="form-check-input me-1" type="checkbox" checked onChange={() => checkHandler(task.id)}/> 
                                         : <input class="form-check-input me-1" type="checkbox" onChange={() => checkHandler(task.id)}/> 
                                     } */}
-                                    <input className="form-check-input me-1" type="checkbox" checked={task.checked} onChange={() => checkHandler(task.id)} />
+                                    <input className="form-check-input me-1" type="checkbox" checked={task.checked} onChange={() => checkHandler(task.taskId)} />
                                     {task.title}
                                     
                                         
@@ -95,7 +106,7 @@ function taskSubmitHandler(e) {
         const new_task = {
             title: input_text,
             checked: false,
-            id: uuid()
+            taskId: uuid()
         }
         store.dispatch(addTask(new_task));
     }
@@ -116,5 +127,20 @@ const mapStateToProps = state => {
     }
 }
 
+const Spinner = (props) => {
+    let spinner;
+    React.useEffect(() => {
+        
+    }, [props.state])
+    return props.state ? (
+                <div className="row justify-content-center m-3">
+                    <div className="col-1">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+    ) : null;
+}
 
 export default connect(mapStateToProps)(TodoBin)
