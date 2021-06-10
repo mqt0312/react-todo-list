@@ -1,4 +1,3 @@
-import logo from './logo.svg';
 import {
   BrowserRouter as Router,
   Switch,
@@ -9,11 +8,8 @@ import 'jquery/dist/jquery';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap/js/dist/collapse';
 
-
 import NavBar from './components/NavBar';
 import TodoBin from './components/TodoBin';
-
-
 
 function App() {
   return (
@@ -27,7 +23,6 @@ function App() {
           <TodoBin />
         </Route>
       </Switch>
-      
     </Router>
     
   );

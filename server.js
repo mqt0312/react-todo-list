@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const body_parser = require('body-parser');
 require('dotenv').config();
 
+// Import the Express routers
 const todos_router = require('./routes/api/todos')
 
 // Initial app configuration

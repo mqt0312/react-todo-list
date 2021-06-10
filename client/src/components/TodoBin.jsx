@@ -1,103 +1,108 @@
 import React from 'react';
 import { connect, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { stringify, v4 as uuid } from 'uuid';
-import { ContextMenu, ContextMenuTrigger, MenuItem  } from 'react-contextmenu';
-import { createSelector } from '@reduxjs/toolkit'
+import { ContextMenu, ContextMenuTrigger, MenuItem } from 'react-contextmenu';
 import './TodoBin.css'
 
 import store from '../redux/store'
-import { addTask, checkTask, deleteTask, saveTodos, loadTodos, saveTasks } from '../redux/slices/todos-slice'
-
-
+import { addTask, checkTask, deleteTask, saveTodos, loadTodos } from '../redux/slices/todos-slice'
 
 const TodoBin = (props) => {
-    // React.useEffect(() => {
-    //     console.log("adding resize listener...")
-    //     const resizeHandler = () => textAreaAutoExpand(document.getElementById("todobin-new-task-textarea"));
-    //     window.addEventListener('resize', resizeHandler);
-    //     return () => {
-    //         console.log("removing resize listener...")
-    //         window.removeEventListener('resize', resizeHandler);
-    //     }
-    // }, [])
+    
+    const status = useSelector(state => state.todos.status);
+    const errmsg = useSelector(state => state.todos.errmsg);
     const { todosId } = useParams();
     React.useEffect(() => {
         if (todosId !== undefined) {
             store.dispatch(loadTodos(todosId));
         }
     }, []);
-    const status = useSelector(state => state.todos.status);
-    
 
-    return (
-        <div className="container-fluid my-3">
-            <div className="row justify-content-center">
-                <div className="col-6">
-                    <form onSubmit={taskSubmitHandler}>
-                        <input type="text" className="form-control" placeholder="New Task" />
-
-                    </form>
+    if (!props.todos.tasks | status === 'error') {
+        return (
+            <div class="alert alert-danger text-center" role="alert">
+                {errmsg || "Error"}
+            </div>
+        )
+    } else {
+        const shareableUrl = props.todos.status === "saved" ?
+            <div class="alert alert-primary" role="alert">
+                Here's your shareable URL:
+                <div className="url-clipboard">
+                    {window.location.origin + "/todos/" + props.todos.todosId}
                 </div>
             </div>
-            <Spinner state={status === "busy"} />
-            <div className="row justify-content-center">
-                <div className="col-6 mt-2">
-                    <ul className="list-group">
-                        {props.todos.tasks.map(task => (
-                            <ContextMenuTrigger id="todo-contextmenu" key={task.taskId}>
-                                <li data-taskid={task.taskId.toString()} className="list-group-item list-group-item-action d-flex justify-content-left">
-                                    {/* {task.checked ? 
-                                        <input class="form-check-input me-1" type="checkbox" checked onChange={() => checkHandler(task.id)}/> 
-                                        : <input class="form-check-input me-1" type="checkbox" onChange={() => checkHandler(task.id)}/> 
-                                    } */}
-                                    <input className="form-check-input me-1" type="checkbox" checked={task.checked} onChange={() => checkHandler(task.taskId)} />
-                                    {task.title}
-                                    
-                                        
-                                    
-                                    
-                                </li>
-                            </ContextMenuTrigger>
-                            
-                        ))}
-                        <ContextMenu id="todo-contextmenu">
-                            <MenuItem data={{type: "delete"}} onClick={(e, data, elem) => deleteHandler(elem.children[0].dataset.taskid)}>
-                                Delete
-                            </MenuItem>
-                            
-                        </ContextMenu>
+            : null;
 
+        return (
+            <div className="container-fluid my-3">
+                <div className="row justify-content-center">
+                    <div className="col-6">
+                        <form onSubmit={taskSubmitHandler}>
+                            <input type="text" className="form-control" placeholder="New Task" />
+                        </form>
+                    </div>
+                </div>
 
-                    </ul>
+                {status === "busy" && (
+                    <div className="row justify-content-center m-3">
+                    <div className="col-1">
+                        <div className="spinner-border" role="status">
+                            <span className="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+                )}
+
+                <div className="row justify-content-center">
+                    <div className="col-6 mt-2">
+                        <ul className="list-group">
+                            {props.todos.tasks.map(task => (
+                                <ContextMenuTrigger id="todo-contextmenu" key={task.taskId}>
+                                    <li data-taskid={task.taskId.toString()} className="list-group-item list-group-item-action d-flex justify-content-left">
+                                        {console.log(task)}
+                                        <input className="form-check-input me-1" id={task.taskId} type="checkbox" checked={task.checked} onChange={() => checkHandler(task.taskId)} />
+                                        <label className="form-check-label" for="flexCheckDefault">
+                                            {task.title}
+                                        </label>
+                                    </li>
+                                </ContextMenuTrigger>
+                            ))}
+                            <ContextMenu id="todo-contextmenu">
+                                <MenuItem data={{ type: "delete" }} onClick={(e, data, elem) => deleteHandler(elem.children[0].dataset.taskid)}>
+                                    Delete
+                                </MenuItem>
+                            </ContextMenu>
+                        </ul>
+                    </div>
+                </div>
+
+                <div className="row justify-content-center">
+                    <div className="col-6 mt-2">
+                        {shareableUrl}
+                    </div>
+                </div>
+
+                <div className="row justify-content-center">
+                    <div className="col-6 mt-2 d-grid">
+                        <button className="btn btn-primary" onClick={() => store.dispatch(saveTodos(props.todos))}>
+                            Save
+                        </button>
+                    </div>
                 </div>
 
             </div>
-            <div className="row justify-content-center">
-                <div className="col-6 mt-2 d-grid">
-                    <button className="btn btn-primary" onClick={() => store.dispatch(saveTodos(props.todos))}>
-                        Save
-                    </button>
-                </div>
-            </div>
-
-        </div>
-    )
-}
-
-function textAreaAutoExpand(ta_elem) {
-    /* An event handler for a text area that adjusts the height of 
-       the text area to fit the content. The minimum height is the
-       height of the textarea when it is loaded.
-     */
-    if (textAreaAutoExpand.initial_height === undefined) {
-        textAreaAutoExpand.initial_height = ta_elem.scrollHeight;
+        )
     }
-    ta_elem.style.height = "1px";
-    ta_elem.style.height = Math.max(ta_elem.scrollHeight, textAreaAutoExpand.initial_height) + "px";
 }
 
-function taskSubmitHandler(e) {
+/**
+ * Task submission handler
+ * @name taskSubmitHandler
+ * @desc Record new task and dispatch the task-creation action to the Redux store
+ * @param {Event} e The event passed from the browser
+ */
+const taskSubmitHandler = e => {
     e.preventDefault()
     const input_elem = e.target[0];
     if (!(input_elem.value === "")) {
@@ -105,18 +110,28 @@ function taskSubmitHandler(e) {
         input_elem.value = "";
         const new_task = {
             title: input_text,
-            checked: false,
-            taskId: uuid()
+            checked: false
         }
         store.dispatch(addTask(new_task));
     }
-
 }
 
+/**
+ * Task checking handler
+ * @name checkHandler
+ * @desc Dispatch the task-checking action with the requested task's ID 
+ * @param {String} task_id The ID of the task need checking
+ */
 const checkHandler = task_id => {
     store.dispatch(checkTask(task_id))
 }
 
+/**
+ * Task deletion handler
+ * @name deleteHandler
+ * @desc Dispatch the task-deleting action with the requested task's ID 
+ * @param {String} task_id The ID of the task need checking
+ */
 const deleteHandler = task_id => {
     store.dispatch(deleteTask(task_id))
 }
@@ -127,20 +142,5 @@ const mapStateToProps = state => {
     }
 }
 
-const Spinner = (props) => {
-    let spinner;
-    React.useEffect(() => {
-        
-    }, [props.state])
-    return props.state ? (
-                <div className="row justify-content-center m-3">
-                    <div className="col-1">
-                        <div class="spinner-border" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                    </div>
-                </div>
-    ) : null;
-}
 
 export default connect(mapStateToProps)(TodoBin)
