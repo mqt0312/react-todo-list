@@ -12,7 +12,7 @@ const Todos = require('../../models/Todos');
  * @routeparam {String} :todosId is the ID of the requested todo list
  */
 router.get("/:todosId", (req, res) => {
-    Todos.findOne({todosId: req.params.todosId}, { _id: 0, __v: 0, tasks: { _id: 0 } })
+    Todos.findOne({ todosId: req.params.todosId }, { _id: 0, __v: 0, tasks: { _id: 0 } })
         .then(todos => {
             if (todos === undefined) {
                 res.status(404);
@@ -26,17 +26,14 @@ router.get("/:todosId", (req, res) => {
  * @route {POST} /todos
  * @desc Create a todo list
  */
-
 router.post("/", (req, res) => {
     const sha256 = createHash('sha256');
     const new_todos = {
         tasks: req.body.tasks
     };
-    new_todos.todosId = sha256.update(uuid4()).update(salt(4)).digest('hex').slice(0,8);
+    new_todos.todosId = sha256.update(uuid4()).update(salt(4)).digest('hex').slice(0, 8);
     new_todos.createdTime = Date();
     new_todos.updatedTime = Date();
-
-    // console.log(req);
     Todos.create(new_todos
         , (err, task) => {
             if (err) {
@@ -45,11 +42,9 @@ router.post("/", (req, res) => {
             }
             else {
                 res.status(200).json(new_todos)
-            } 
+            }
         }
     );
 });
-
-
 
 module.exports = router;

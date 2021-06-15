@@ -5,10 +5,9 @@ import { ContextMenu, ContextMenuTrigger, MenuItem } from 'react-contextmenu';
 import './TodoBin.css'
 
 import store from '../redux/store'
-import { addTask, checkTask, deleteTask, saveTodos, loadTodos } from '../redux/slices/todosSlice'
+import { addTask, checkTask, deleteTask, saveTodos, loadTodos, raiseError } from '../redux/slices/todosSlice'
 
 const TodoBin = (props) => {
-    
     const status = useSelector(state => state.todos.status);
     const errmsg = useSelector(state => state.todos.errmsg);
     const { todosId } = useParams();
@@ -18,82 +17,97 @@ const TodoBin = (props) => {
         }
     }, []);
 
-    if (!props.todos.tasks | status === 'error') {
-        return (
-            <div class="alert alert-danger text-center" role="alert">
-                {errmsg || "Error"}
-            </div>
-        )
-    } else {
-        const shareableUrl = props.todos.status === "saved" ?
+    
+    const shareableUrl = props.todos.status === "saved" && (
+        <FlexWrapper>
             <div class="alert alert-primary" role="alert">
                 Here's your shareable URL:
                 <div className="url-clipboard bg-light p-2 text-center mt-2">
                     {window.location.origin + "/todos/" + props.todos.todosId}
                 </div>
             </div>
-            : null;
+        </FlexWrapper>
+    );
 
-        return (
-            <div className="container-fluid my-3">
-                <div className="row justify-content-center">
-                    <div className="col-6">
-                        <form onSubmit={taskSubmitHandler}>
-                            <input type="text" className="form-control" placeholder="New Task" />
-                        </form>
-                    </div>
+    const spinner = status === "busy" && (
+        <div className="row justify-content-center my-3">
+            <div className="col-1">
+                <div className="spinner-border" role="status">
+                    <span className="visually-hidden">Loading...</span>
                 </div>
-
-                {status === "busy" && (
-                    <div className="row justify-content-center m-3">
-                    <div className="col-1">
-                        <div className="spinner-border" role="status">
-                            <span className="visually-hidden">Loading...</span>
-                        </div>
-                    </div>
-                </div>
-                )}
-
-                <div className="row justify-content-center">
-                    <div className="col-6 mt-2">
-                        <ul className="list-group">
-                            {props.todos.tasks.map(task => (
-                                <ContextMenuTrigger id="todo-contextmenu" key={task.taskId}>
-                                    <li data-taskid={task.taskId.toString()} className="list-group-item list-group-item-action d-flex justify-content-left">
-                                        {console.log(task)}
-                                        <input className="form-check-input me-1" id={task.taskId} type="checkbox" checked={task.checked} onChange={() => checkHandler(task.taskId)} />
-                                        <label className="form-check-label" for="flexCheckDefault">
-                                            {task.title}
-                                        </label>
-                                    </li>
-                                </ContextMenuTrigger>
-                            ))}
-                            <ContextMenu id="todo-contextmenu">
-                                <MenuItem data={{ type: "delete" }} onClick={(e, data, elem) => deleteHandler(elem.children[0].dataset.taskid)}>
-                                    Delete
-                                </MenuItem>
-                            </ContextMenu>
-                        </ul>
-                    </div>
-                </div>
-
-                <div className="row justify-content-center">
-                    <div className="col-6 mt-2">
-                        {shareableUrl}
-                    </div>
-                </div>
-
-                <div className="row justify-content-center">
-                    <div className="col-6 mt-2 d-grid">
-                        <button className="btn btn-primary" onClick={() => store.dispatch(saveTodos(props.todos))}>
-                            Save
-                        </button>
-                    </div>
-                </div>
-
             </div>
-        )
-    }
+        </div>
+    );
+
+    const err = errmsg && (
+        <FlexWrapper>
+            <ErrMsg errmsg={errmsg} />
+        </FlexWrapper>
+    );
+
+    return (
+        <div className="container-fluid my-3">
+            {err}
+
+            <FlexWrapper>
+                <form onSubmit={taskSubmitHandler}>
+                    <input type="text" className="form-control" placeholder="New Task" />
+                </form>
+            </FlexWrapper>
+
+            {spinner}
+
+            <FlexWrapper>
+                <ul className="list-group">
+                    {props.todos.tasks.map(task => (
+                        <ContextMenuTrigger id="todo-contextmenu" key={task.taskId}>
+                            <li data-taskid={task.taskId.toString()} className="list-group-item list-group-item-action d-flex justify-content-left">
+                                <input className="form-check-input me-1" id={task.taskId} type="checkbox" checked={task.checked} onChange={() => checkHandler(task.taskId)} />
+                                <label className="form-check-label" for="flexCheckDefault">
+                                    {task.title}
+                                </label>
+                            </li>
+                        </ContextMenuTrigger>
+                    ))}
+                    <ContextMenu id="todo-contextmenu">
+                        <MenuItem data={{ type: "delete" }} onClick={(e, data, elem) => deleteHandler(elem.children[0].dataset.taskid)}>
+                            Delete
+                        </MenuItem>
+                    </ContextMenu>
+                </ul>
+            </FlexWrapper>
+
+            {shareableUrl}
+
+            <FlexWrapper>
+                <div className="d-grid">
+                    <button className="btn btn-primary" onClick={() => todosSubmitHandler(props.todos)}>
+                        Save
+                    </button>
+                </div>
+            </FlexWrapper>
+
+        </div>
+    )
+    
+}
+
+const FlexWrapper = (props) => {
+    return (
+        <div className="row justify-content-center">
+            <div className="col-md-6 col-sm-8 col-xs-10 mt-2">
+                {props.children}
+            </div>
+        </div>
+    )
+}
+
+const ErrMsg = (props) => {
+    return (
+        <div class="alert alert-danger text-center">
+            {props.errmsg || "Error"}
+        </div>
+    )
 }
 
 /**
@@ -113,6 +127,25 @@ const taskSubmitHandler = e => {
             checked: false
         }
         store.dispatch(addTask(new_task));
+    }
+}
+
+/**
+ * Todos submission handler
+ * @name todosSubmitHandler
+ * @desc Validate todos list and dispatch todos-creation action to the Redux store
+ * @param {Event} e The event passed from the browser
+ */
+const todosSubmitHandler = todos => {
+    const todosStatus = store.getState().todos.status;
+    if (todosStatus === "saved" || todosStatus === "loaded" || todosStatus === "error") {
+        store.dispatch(raiseError("Cannot save. Either an error occured, or you haven't make any changes to this todo list."));
+    }
+    else if (!todos.tasks.length) {
+        store.dispatch(raiseError("Cannot submit empty todos"));
+    }
+    else {
+        store.dispatch(saveTodos(todos));
     }
 }
 

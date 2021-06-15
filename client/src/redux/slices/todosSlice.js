@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { v4 as uuid } from 'uuid';
 import axios from 'axios';
+import store from '../store';
 
 const initialState = {tasks: [], status: "idle"};
 
@@ -12,7 +13,6 @@ const initialState = {tasks: [], status: "idle"};
 const saveTodos = createAsyncThunk(
   "todos/saveTodos",
   async (_, thunkAPI) => {
-    console.log(thunkAPI.getState());
     let response;
     await axios
       .post("/todos", thunkAPI.getState().todos)
@@ -36,8 +36,12 @@ const loadTodos = createAsyncThunk(
       .get(`/todos/${todosId}`)
       .then(res => response = res.data)
       .catch(err => console.error(err));
-    console.log(response);
-    return response;
+    if (response)
+      return response;
+    else {
+      store.dispatch(raiseError("Cannot find todos list"));
+      return null;
+    }
   }
 )
 
@@ -57,7 +61,11 @@ const todosSlice = createSlice({
       const new_task = action.payload;
       new_task.taskId = uuid();
       state.tasks.push(new_task);
+      // Right now, errors happen when list cannot be found or is already saved. can be cleared by making changes to the current list
+      state.status = "idle";
+      state.errmsg = "";
     },
+
     /**
      * @name addTask
      * @function
@@ -68,7 +76,11 @@ const todosSlice = createSlice({
     checkTask(state, action) {
       const task = state.tasks.find(task => task.taskId === action.payload);
       task.checked = !task.checked;
+      // Right now, errors happen when list cannot be found or is already saved. can be cleared by making changes to the current list
+      state.status = "idle";
+      state.errmsg = "";
     },
+
     /**
      * @name deleteTask
      * @function
@@ -77,11 +89,12 @@ const todosSlice = createSlice({
      * @param {String} task_id The ID of the task that's being deleted
      */
     deleteTask(state, action) {
-      return {
-        ...state,
-        tasks: state.tasks.filter(task => task.taskId !== action.payload)
-      }
+      state.tasks = state.tasks.filter(task => task.taskId !== action.payload)
+      // Right now, errors happen when list cannot be found or is already saved. can be cleared by making changes to the current list
+      state.status = "idle";
+      state.errmsg = "";
     },
+
     /**
      * @name deleteTask
      * @function
@@ -91,28 +104,34 @@ const todosSlice = createSlice({
     clearTasks(state, action) {
       return initialState;
     },
+
+    raiseError(state, action) {
+      state.status = "error";
+      state.errmsg = action.payload;
+    },
+
+    clearError(state, action) {
+      state.status = "idle";
+      state.errmsg = "";
+    },
   },
   extraReducers: {
     [saveTodos.fulfilled]: (state, action) => {
       action.payload.status = "saved";
       return action.payload;  
     },
+
     [saveTodos.pending]: (state, action) => {
       state.status = "busy";
     },
+
     [loadTodos.fulfilled]: (state, action) => {
-      if (!action.payload) {
-        return {
-          status: "error",
-          errmsg: "Cannot find todo list"
-        }
-      }
-      else {
+      if (action.payload) {
         action.payload.status = "loaded"
         return action.payload
       }
-      
     },
+    
     [loadTodos.pending]: (state, action) => {
       state.status = "busy";
     }
@@ -120,6 +139,6 @@ const todosSlice = createSlice({
   }
 })
 
-export const { addTask, checkTask, deleteTask, clearTasks } = todosSlice.actions;
+export const { addTask, checkTask, deleteTask, clearTasks, raiseError } = todosSlice.actions;
 export {saveTodos, loadTodos};
 export default todosSlice.reducer;
