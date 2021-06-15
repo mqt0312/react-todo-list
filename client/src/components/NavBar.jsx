@@ -1,6 +1,6 @@
 import React from 'react'
 import store from '../redux/store'
-import { clearTasks } from '../redux/slices/todos-slice'
+import { clearTasks } from '../redux/slices/todosSlice'
 import { Link } from 'react-router-dom'
 
 const NavBar = () => {

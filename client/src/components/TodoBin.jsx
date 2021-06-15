@@ -5,7 +5,7 @@ import { ContextMenu, ContextMenuTrigger, MenuItem } from 'react-contextmenu';
 import './TodoBin.css'
 
 import store from '../redux/store'
-import { addTask, checkTask, deleteTask, saveTodos, loadTodos } from '../redux/slices/todos-slice'
+import { addTask, checkTask, deleteTask, saveTodos, loadTodos } from '../redux/slices/todosSlice'
 
 const TodoBin = (props) => {
     
@@ -28,7 +28,7 @@ const TodoBin = (props) => {
         const shareableUrl = props.todos.status === "saved" ?
             <div class="alert alert-primary" role="alert">
                 Here's your shareable URL:
-                <div className="url-clipboard">
+                <div className="url-clipboard bg-light p-2 text-center mt-2">
                     {window.location.origin + "/todos/" + props.todos.todosId}
                 </div>
             </div>
